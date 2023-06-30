@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
@@ -20,9 +22,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Inicializamos RecyclerView y Adapter
         recyclerView = findViewById(R.id.recyclerView)
-        tareaAdapter = TareaAdapter()
+        tareaAdapter = TareaAdapter {tarea -> showDialog(tarea)}
         recyclerView.adapter = tareaAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -31,16 +32,13 @@ class MainActivity : AppCompatActivity() {
         val factory = TareaViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory).get(TareaViewModel::class.java)
 
-        // Observamos los cambios en los datos
         viewModel.leerTodasLasTareas.observe(this, Observer { tareas ->
             tareaAdapter.setData(tareas)
         })
 
         val fab = findViewById<FloatingActionButton>(R.id.fab)
         fab.setOnClickListener {
-            // Aquí puedes abrir una nueva Activity o un Dialog para agregar una tarea
-            // Por ahora, sólo añadiremos una tarea de ejemplo
-            viewModel.agregarTarea(Tarea(0, "Tarea de ejemplo", "Descripción de la tarea"))
+            showDialog(null)
         }
     }
 
@@ -57,5 +55,34 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun showDialog(tarea: Tarea?) {
+        val builder = AlertDialog.Builder(this)
+        val inflater = layoutInflater
+        val dialogLayout = inflater.inflate(R.layout.dialogo_tarea, null)
+        val editTextName = dialogLayout.findViewById<EditText>(R.id.editarNombre)
+        val editTextDescription = dialogLayout.findViewById<EditText>(R.id.editarDescripcion)
+
+        with(builder) {
+            setTitle(if (tarea == null) "Nueva tarea" else "Editar tarea")
+            setPositiveButton("Aceptar") { dialog, _ ->
+                val nombre = editTextName.text.toString()
+                val descripcion = editTextDescription.text.toString()
+                if (tarea == null) {
+                    viewModel.agregarTarea(Tarea(0, nombre, descripcion))
+                } else {
+                    tarea.nombre = nombre
+                    tarea.descripcion = descripcion
+                    viewModel.actualizarTarea(tarea)
+                }
+                dialog.dismiss()
+            }
+            setNegativeButton("Cancelar") { dialog, _ ->
+                dialog.dismiss()
+            }
+            setView(dialogLayout)
+            show()
+        }
     }
 }

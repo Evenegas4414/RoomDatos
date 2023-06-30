@@ -7,6 +7,6 @@ import androidx.room.PrimaryKey
 data class Tarea(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
-    val nombre: String,
-    val descripcion: String
+    var nombre: String,
+    var descripcion: String
 )

@@ -6,23 +6,30 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class TareaAdapter : RecyclerView.Adapter<TareaAdapter.TareaViewHolder>() {
+class TareaAdapter(private val onItemClicked: (Tarea) -> Unit) : RecyclerView.Adapter<TareaAdapter.TareaViewHolder>() {
 
     private var listaTareas = emptyList<Tarea>()
 
-    class TareaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class TareaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvNombre: TextView = itemView.findViewById(R.id.tvNombre)
         val tvDescripcion: TextView = itemView.findViewById(R.id.tvDescripcion)
+
+        fun bind(tarea: Tarea) {
+            tvNombre.text = tarea.nombre
+            tvDescripcion.text = tarea.descripcion
+            itemView.setOnClickListener {
+                onItemClicked(tarea)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TareaViewHolder {
-        return TareaViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_tarea, parent, false))
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_tarea, parent, false)
+        return TareaViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: TareaViewHolder, position: Int) {
-        val tareaActual = listaTareas[position]
-        holder.tvNombre.text = tareaActual.nombre
-        holder.tvDescripcion.text = tareaActual.descripcion
+        holder.bind(listaTareas[position])
     }
 
     override fun getItemCount(): Int {
